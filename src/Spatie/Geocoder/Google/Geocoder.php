@@ -140,11 +140,34 @@ class Geocoder implements GeocoderInterface
                 'formatted_address' => self::RESULT_NOT_FOUND,
             ];
         }
+        
+        $address = [];
+        
+        foreach($fullResponse->results[0]->address_components AS $c) {
+            foreach($c->types AS $t) {
+                switch ($t) {
+                    case 'street_number':
+                        $address['house'] = $c->short_name;
+                        break;
+                    case 'route':
+                        $address['street'] = $c->short_name;
+                        break;
+                    case 'locality':
+                        $address['city'] = $c->short_name;
+                        break;
+                    case 'postal_code':
+                        $address['zip'] = $c->short_name;
+                        break;
+                }
+            }
+        }
+        
 
         return [
             'lat' => $fullResponse->results[0]->geometry->location->lat,
             'lng' => $fullResponse->results[0]->geometry->location->lng,
             'accuracy' => $fullResponse->results[0]->geometry->location_type,
+            'address' => $address,
             'formatted_address' => $fullResponse->results[0]->formatted_address,
         ];
     }
